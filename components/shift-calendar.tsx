@@ -140,20 +140,20 @@ export function ShiftCalendar({ date, view, onViewChange, onDateChange }: ShiftC
   }
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-2 w-full bg-white dark:bg-slate-950">
       {/* カレンダーヘッダー */}
-      <div className="flex flex-col sm:flex-row gap-2 justify-between items-center px-2 sm:px-0">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={goToToday}>
+      <div className="flex flex-col sm:flex-row gap-2 justify-between items-center px-2 sm:px-0 mb-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button variant="outline" size="sm" onClick={goToToday} className="h-8 px-2 text-xs sm:text-sm">
             今日
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => navigateDate("prev")}>
+          <Button variant="ghost" size="icon" onClick={() => navigateDate("prev")} className="h-8 w-8">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => navigateDate("next")}>
+          <Button variant="ghost" size="icon" onClick={() => navigateDate("next")} className="h-8 w-8">
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <h2 className="text-xl font-bold">
+          <h2 className="text-base sm:text-lg font-medium ml-1">
             {currentView === "day" 
               ? formatDate(selectedDate)
               : currentView === "week"
@@ -169,13 +169,13 @@ export function ShiftCalendar({ date, view, onViewChange, onDateChange }: ShiftC
           </h2>
         </div>
         
-        <div className="flex rounded-md border">
+        <div className="flex rounded-md border bg-white dark:bg-slate-950">
           <Button
             variant={currentView === "day" ? "subtle" : "ghost"}
             size="sm"
             className={cn(
-              "rounded-none rounded-l-md",
-              currentView === "day" ? "bg-muted" : "hover:bg-transparent"
+              "rounded-none rounded-l-md h-8",
+              currentView === "day" ? "bg-gray-100 dark:bg-slate-800" : "hover:bg-transparent"
             )}
             onClick={() => handleViewChange("day")}
           >
@@ -186,8 +186,8 @@ export function ShiftCalendar({ date, view, onViewChange, onDateChange }: ShiftC
             variant={currentView === "week" ? "subtle" : "ghost"}
             size="sm"
             className={cn(
-              "rounded-none border-x",
-              currentView === "week" ? "bg-muted" : "hover:bg-transparent"
+              "rounded-none border-x h-8",
+              currentView === "week" ? "bg-gray-100 dark:bg-slate-800" : "hover:bg-transparent"
             )}
             onClick={() => handleViewChange("week")}
           >
@@ -198,8 +198,8 @@ export function ShiftCalendar({ date, view, onViewChange, onDateChange }: ShiftC
             variant={currentView === "month" ? "subtle" : "ghost"}
             size="sm"
             className={cn(
-              "rounded-none rounded-r-md",
-              currentView === "month" ? "bg-muted" : "hover:bg-transparent"
+              "rounded-none rounded-r-md h-8",
+              currentView === "month" ? "bg-gray-100 dark:bg-slate-800" : "hover:bg-transparent"
             )}
             onClick={() => handleViewChange("month")}
           >
@@ -210,7 +210,7 @@ export function ShiftCalendar({ date, view, onViewChange, onDateChange }: ShiftC
       </div>
       
       {/* カレンダー本体 - スクロール可能なコンテナ */}
-      <div className="border rounded-md bg-card overflow-hidden">
+      <div className="border rounded-md bg-white dark:bg-slate-950 overflow-hidden">
         <div className="w-full overflow-auto">
           {currentView === "day" ? (
             <DayView date={selectedDate} events={events} isMobile={isMobile} />
@@ -244,8 +244,8 @@ function DayView({ date, events, isMobile }: { date: Date; events: ShiftEvent[];
   }
 
   return (
-    <div className="h-[calc(100vh-220px)] min-h-[400px] overflow-y-auto">
-      <div className="space-y-1 p-2 min-w-[640px]"> {/* 最小幅を設定して横スクロール可能に */}
+    <div className="h-[calc(100vh-250px)] min-h-[500px] overflow-y-auto">
+      <div className="space-y-0 p-2 min-w-[640px]">
         <div className="grid grid-cols-[50px_1fr] pb-2 border-b">
           <div className="text-xs text-muted-foreground sticky left-0"></div>
           <div className="px-2">
@@ -260,13 +260,13 @@ function DayView({ date, events, isMobile }: { date: Date; events: ShiftEvent[];
           const hasEvents = hourEvents.length > 0
           
           return (
-            <div key={hour} className="grid grid-cols-[50px_1fr] min-h-[48px]">
-              <div className="text-right pr-2 text-xs text-muted-foreground pt-2 sticky left-0 bg-card z-10">
+            <div key={hour} className="grid grid-cols-[50px_1fr] min-h-[50px]">
+              <div className="text-right pr-2 text-xs text-muted-foreground pt-2 sticky left-0 bg-white dark:bg-slate-950 z-10">
                 {hour}:00
               </div>
               <div className={cn(
                 "border-l pl-2 relative",
-                hasEvents ? "bg-muted/20" : ""
+                hasEvents ? "bg-gray-50 dark:bg-slate-900/30" : ""
               )}>
                 {hourEvents.map((event) => {
                   const startHour = new Date(event.start).getHours()
@@ -283,12 +283,14 @@ function DayView({ date, events, isMobile }: { date: Date; events: ShiftEvent[];
                     <div 
                       key={event.id} 
                       className={cn(
-                        "absolute left-2 right-2 rounded-md px-2 py-1 text-sm z-10",
-                        event.color,
+                        "absolute left-2 right-2 rounded-md px-2 py-1 text-sm z-10 border",
+                        event.type === "shift" 
+                          ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-800" 
+                          : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800",
                         startMin > 0 ? "mt-6" : "mt-0"
                       )}
                       style={{ 
-                        height: `${Math.min(durationHours * 48, 48)}px`,
+                        height: `${Math.min(durationHours * 50, 50)}px`,
                         zIndex: event.type === "shift" ? 10 : 20
                       }}
                     >
@@ -361,6 +363,7 @@ function WeekView({
             const isActive = day.toDateString() === activeDay.toDateString()
             const isToday = day.toDateString() === new Date().toDateString()
             const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][day.getDay()]
+            const isWeekend = day.getDay() === 0 || day.getDay() === 6
             
             return (
               <Button
@@ -369,15 +372,16 @@ function WeekView({
                 size="sm"
                 className={cn(
                   "flex flex-col items-center p-1 h-auto",
-                  isActive && "bg-primary/10 font-bold",
-                  isToday && "text-primary"
+                  isActive && "bg-gray-100 dark:bg-slate-800 font-medium",
+                  isToday && "text-blue-600 dark:text-blue-400",
+                  isWeekend && (day.getDay() === 0 ? "text-red-500" : "text-blue-500")
                 )}
                 onClick={() => setActiveDay(day)}
               >
                 <span className="text-xs">{dayOfWeek}</span>
                 <span className={cn(
-                  "w-7 h-7 flex items-center justify-center rounded-full",
-                  isToday && "bg-primary text-primary-foreground",
+                  "w-6 h-6 flex items-center justify-center rounded-full text-xs",
+                  isToday && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
                 )}>
                   {day.getDate()}
                 </span>
@@ -387,20 +391,20 @@ function WeekView({
         </div>
         
         {/* 選択された日のイベント */}
-        <div className="h-[calc(100vh-300px)] min-h-[300px] overflow-y-auto">
-          <div className="space-y-1 p-2">
+        <div className="h-[calc(100vh-330px)] min-h-[300px] overflow-y-auto">
+          <div className="space-y-0 p-2">
             {hours.map((hour) => {
               const hourEvents = getHourEvents(hour)
               const hasEvents = hourEvents.length > 0
               
               return (
-                <div key={hour} className="grid grid-cols-[40px_1fr] min-h-[48px]">
+                <div key={hour} className="grid grid-cols-[40px_1fr] min-h-[50px]">
                   <div className="text-right pr-2 text-xs text-muted-foreground pt-2">
                     {hour}:00
                   </div>
                   <div className={cn(
                     "border-l pl-2 relative",
-                    hasEvents ? "bg-muted/20" : ""
+                    hasEvents ? "bg-gray-50 dark:bg-slate-900/30" : ""
                   )}>
                     {hourEvents.map((event) => {
                       const startHour = new Date(event.start).getHours()
@@ -417,12 +421,14 @@ function WeekView({
                         <div 
                           key={event.id} 
                           className={cn(
-                            "absolute left-2 right-2 rounded-md px-2 py-1 text-sm z-10",
-                            event.color,
+                            "absolute left-2 right-2 rounded-md px-2 py-1 text-sm z-10 border",
+                            event.type === "shift" 
+                              ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-800" 
+                              : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800",
                             startMin > 0 ? "mt-6" : "mt-0"
                           )}
                           style={{ 
-                            height: `${Math.min(durationHours * 48, 48)}px`,
+                            height: `${Math.min(durationHours * 50, 50)}px`,
                             zIndex: event.type === "shift" ? 10 : 20
                           }}
                         >
@@ -450,33 +456,35 @@ function WeekView({
     : weekDays // デスクトップは全日表示
 
   return (
-    <div className="h-[calc(100vh-220px)] min-h-[400px] overflow-auto">
-      <div className="min-w-[640px]"> {/* 最小幅を設定して横スクロール可能に */}
+    <div className="h-[calc(100vh-250px)] min-h-[500px] overflow-auto">
+      <div className="min-w-[720px]"> {/* 最小幅を設定して横スクロール可能に */}
         <div className={cn(
           "grid gap-px",
           `grid-cols-[50px_repeat(${displayDays.length},1fr)]`
         )}>
           {/* ヘッダー行 */}
-          <div className="sticky top-0 z-30 bg-card"></div>
+          <div className="sticky top-0 z-30 bg-white dark:bg-slate-950"></div>
           {displayDays.map((day, i) => {
             const isToday = day.toDateString() === new Date().toDateString()
             const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][day.getDay()]
             const dateNum = day.getDate()
+            const isWeekend = day.getDay() === 0 || day.getDay() === 6
             
             return (
               <div 
                 key={i} 
                 className={cn(
-                  "sticky top-0 z-30 text-center py-2 bg-card",
-                  isToday && "bg-primary/10"
+                  "sticky top-0 z-30 text-center py-2 bg-white dark:bg-slate-950 border-b",
+                  isToday && "bg-blue-50/50 dark:bg-blue-900/10",
+                  isWeekend && (day.getDay() === 0 ? "text-red-500" : "text-blue-500")
                 )}
               >
                 <div className="text-sm font-medium">
                   {dayOfWeek}
                 </div>
                 <div className={cn(
-                  "inline-flex items-center justify-center w-7 h-7 mt-1 rounded-full",
-                  isToday && "bg-primary text-primary-foreground"
+                  "inline-flex items-center justify-center w-6 h-6 mt-1 rounded-full text-sm",
+                  isToday && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                 )}>
                   {dateNum}
                 </div>
@@ -487,7 +495,7 @@ function WeekView({
           {/* 時間帯と予定の表示 */}
           {hours.map((hour) => (
             <React.Fragment key={hour}>
-              <div className="text-right pr-2 text-xs text-muted-foreground pt-2 bg-card sticky left-0 z-20">
+              <div className="text-right pr-2 text-xs text-muted-foreground pt-2 bg-white dark:bg-slate-950 sticky left-0 z-20 border-r">
                 {hour}:00
               </div>
               
@@ -508,8 +516,8 @@ function WeekView({
                   <div
                     key={dayIndex}
                     className={cn(
-                      "relative border-t min-h-[48px]",
-                      isToday && "bg-primary/5"
+                      "relative border-t min-h-[50px]",
+                      isToday && "bg-blue-50/30 dark:bg-blue-900/5"
                     )}
                   >
                     {hourEvents.map((event) => {
@@ -527,12 +535,14 @@ function WeekView({
                         <div 
                           key={event.id} 
                           className={cn(
-                            "absolute inset-x-0 mx-1 rounded-md px-2 py-1 text-sm z-10",
-                            event.color,
+                            "absolute inset-x-0 mx-1 rounded-md px-2 py-1 text-sm z-10 border",
+                            event.type === "shift" 
+                              ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-800" 
+                              : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800",
                             startMin > 0 ? "mt-6" : "mt-0"
                           )}
                           style={{ 
-                            height: `${Math.min(durationHours * 48, 48)}px`,
+                            height: `${Math.min(durationHours * 50, 50)}px`,
                             zIndex: event.type === "shift" ? 10 : 20
                           }}
                         >
@@ -584,13 +594,13 @@ function MonthView({ date, events, isMobile }: { date: Date; events: ShiftEvent[
   }
 
   return (
-    <div className="h-[calc(100vh-220px)] min-h-[450px] overflow-auto">
+    <div className="h-[calc(100vh-250px)] min-h-[500px] overflow-auto">
       <div className="min-w-[640px] p-2"> {/* 最小幅を設定して横スクロール可能に */}
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1">
           {/* 曜日ヘッダー */}
           {["日", "月", "火", "水", "木", "金", "土"].map((day, index) => (
             <div key={day} className={cn(
-              "text-center text-sm font-medium p-1 sticky top-0 z-10 bg-card",
+              "text-center text-sm font-medium p-1 sticky top-0 z-10 bg-white dark:bg-slate-950 border-b",
               index === 0 && "text-red-500",
               index === 6 && "text-blue-500"
             )}>
@@ -615,20 +625,21 @@ function MonthView({ date, events, isMobile }: { date: Date; events: ShiftEvent[
                 key={i}
                 className={cn(
                   "border rounded-md p-1",
-                  isMobile ? "min-h-[60px]" : "min-h-[90px]",
-                  !isCurrentMonth ? "bg-muted/30 opacity-70" : "",
-                  isToday ? "bg-primary/10 border-primary" : "",
-                  isWeekend && !isToday ? "bg-muted/10" : ""
+                  isMobile ? "min-h-[70px]" : "min-h-[100px]",
+                  !isCurrentMonth ? "bg-gray-50/50 dark:bg-slate-900/10 opacity-70" : "",
+                  isToday ? "bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-900/30" : "",
+                  isWeekend && !isToday ? "bg-gray-50/30 dark:bg-slate-900/5" : ""
                 )}
               >
                 <div className={cn(
                   "flex justify-between items-center",
                   isWeekend && day.getDay() === 0 && "text-red-500",
-                  isWeekend && day.getDay() === 6 && "text-blue-500"
+                  isWeekend && day.getDay() === 6 && "text-blue-500",
+                  !isCurrentMonth && "opacity-50"
                 )}>
                   <span className={cn(
                     "text-sm font-medium",
-                    isToday && "bg-primary text-primary-foreground rounded-full w-7 h-7 flex items-center justify-center"
+                    isToday && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-full w-6 h-6 flex items-center justify-center"
                   )}>
                     {day.getDate()}
                   </span>
@@ -644,23 +655,23 @@ function MonthView({ date, events, isMobile }: { date: Date; events: ShiftEvent[
                   isMobile ? "max-h-[40px] overflow-hidden" : "max-h-[70px] overflow-y-auto"
                 )}>
                   {shiftEvents.length > 0 && (
-                    <div className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded truncate">
+                    <div className="text-xs bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded truncate">
                       シフト {shiftEvents[0].start.substring(11, 16)}-{shiftEvents[0].end.substring(11, 16)}
                     </div>
                   )}
                   
                   {deliveryEvents.map((event, idx) => (
-                    idx < (isMobile ? 1 : 3) && (
-                      <div key={event.id} className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-1.5 py-0.5 rounded truncate">
+                    idx < (isMobile ? 1 : 2) && (
+                      <div key={event.id} className="text-xs bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800 px-1.5 py-0.5 rounded truncate">
                         {event.title} {event.start.substring(11, 16)}-{event.end.substring(11, 16)}
                       </div>
                     )
                   ))}
                   
                   {/* 表示しきれない場合の表示 */}
-                  {((isMobile && dayEvents.length > 2) || (!isMobile && deliveryEvents.length > 3)) && (
+                  {((isMobile && dayEvents.length > 2) || (!isMobile && deliveryEvents.length > 2)) && (
                     <div className="text-xs text-center text-muted-foreground">
-                      +{isMobile ? dayEvents.length - 2 : deliveryEvents.length - 3}
+                      +{isMobile ? dayEvents.length - 2 : deliveryEvents.length - 2}
                     </div>
                   )}
                 </div>

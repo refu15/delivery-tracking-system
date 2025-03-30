@@ -1,80 +1,82 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Edit, Check, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Edit2, Save, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
-type EditableBreakTimeProps = {
-  defaultStartTime?: string
-  defaultEndTime?: string
-  isEditable?: boolean
-  onSave?: (startTime: string, endTime: string) => void
+interface EditableBreakTimeProps {
+  defaultValue: string
+  onUpdate?: (value: string) => void
+  className?: string
 }
 
-export function EditableBreakTime({
-  defaultStartTime = "12:00",
-  defaultEndTime = "13:00",
-  isEditable = false,
-  onSave
+export function EditableBreakTime({ 
+  defaultValue, 
+  onUpdate, 
+  className 
 }: EditableBreakTimeProps) {
-  const [startTime, setStartTime] = useState(defaultStartTime)
-  const [endTime, setEndTime] = useState(defaultEndTime)
   const [isEditing, setIsEditing] = useState(false)
+  const [value, setValue] = useState(defaultValue)
+  const [tempValue, setTempValue] = useState(defaultValue)
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave(startTime, endTime)
-    }
-    setIsEditing(false)
+  const handleEdit = () => {
+    setIsEditing(true)
+    setTempValue(value)
   }
 
   const handleCancel = () => {
-    setStartTime(defaultStartTime)
-    setEndTime(defaultEndTime)
     setIsEditing(false)
+    setTempValue(value)
   }
 
-  if (!isEditable) {
-    return (
-      <span className="font-bold">{startTime} - {endTime}</span>
-    )
+  const handleSave = () => {
+    setIsEditing(false)
+    setValue(tempValue)
+    if (onUpdate) onUpdate(tempValue)
   }
 
   if (isEditing) {
     return (
-      <div className="flex items-center space-x-2">
+      <div className={cn("flex items-center gap-1", className)}>
         <Input
-          type="time"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          className="w-24 h-7 text-xs"
+          value={tempValue}
+          onChange={(e) => setTempValue(e.target.value)}
+          className="h-7 text-sm bg-white dark:bg-slate-950"
+          placeholder="12:00-13:00"
         />
-        <span>-</span>
-        <Input
-          type="time"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          className="w-24 h-7 text-xs"
-        />
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleSave}>
-          <Save className="h-3.5 w-3.5" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleSave} 
+          className="h-7 w-7 text-green-600"
+        >
+          <Check className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCancel}>
-          <X className="h-3.5 w-3.5" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleCancel} 
+          className="h-7 w-7 text-red-600"
+        >
+          <X className="h-4 w-4" />
         </Button>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center justify-between">
-      <span className="font-bold">{startTime} - {endTime}</span>
-      {isEditable && (
-        <Button variant="ghost" size="icon" className="h-6 w-6 ml-2" onClick={() => setIsEditing(true)}>
-          <Edit2 className="h-3.5 w-3.5" />
-        </Button>
-      )}
+    <div className={cn("flex items-center font-medium", className)}>
+      <span>{value}</span>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleEdit}
+        className="h-6 w-6 ml-1"
+      >
+        <Edit className="h-3 w-3 text-muted-foreground" />
+      </Button>
     </div>
   )
 } 
