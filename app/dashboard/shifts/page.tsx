@@ -27,14 +27,16 @@ export default function ShiftsPage() {
       </div>
 
       <div className={isMobile ? "space-y-4" : "grid gap-4 md:grid-cols-[1fr_250px]"}>
-        <Card className="col-span-1">
-          <CardContent className="pt-6">
-            <ShiftCalendar 
-              date={date} 
-              view={view} 
-              onDateChange={handleDateChange}
-              onViewChange={handleViewChange}
-            />
+        <Card className="col-span-1 overflow-hidden">
+          <CardContent className="pt-6 p-0 sm:p-6">
+            <div className="w-full overflow-auto">
+              <ShiftCalendar 
+                date={date} 
+                view={view} 
+                onDateChange={handleDateChange}
+                onViewChange={handleViewChange}
+              />
+            </div>
           </CardContent>
         </Card>
 

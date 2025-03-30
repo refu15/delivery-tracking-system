@@ -140,9 +140,9 @@ export function ShiftCalendar({ date, view, onViewChange, onDateChange }: ShiftC
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       {/* カレンダーヘッダー */}
-      <div className="flex flex-col sm:flex-row gap-2 justify-between items-center">
+      <div className="flex flex-col sm:flex-row gap-2 justify-between items-center px-2 sm:px-0">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={goToToday}>
             今日
@@ -209,15 +209,17 @@ export function ShiftCalendar({ date, view, onViewChange, onDateChange }: ShiftC
         </div>
       </div>
       
-      {/* カレンダー本体 */}
-      <div className="border rounded-md bg-card">
-        {currentView === "day" ? (
-          <DayView date={selectedDate} events={events} isMobile={isMobile} />
-        ) : currentView === "week" ? (
-          <WeekView date={selectedDate} events={events} isMobile={isMobile} isTablet={isTablet} />
-        ) : (
-          <MonthView date={selectedDate} events={events} isMobile={isMobile} />
-        )}
+      {/* カレンダー本体 - スクロール可能なコンテナ */}
+      <div className="border rounded-md bg-card overflow-hidden">
+        <div className="w-full overflow-auto">
+          {currentView === "day" ? (
+            <DayView date={selectedDate} events={events} isMobile={isMobile} />
+          ) : currentView === "week" ? (
+            <WeekView date={selectedDate} events={events} isMobile={isMobile} isTablet={isTablet} />
+          ) : (
+            <MonthView date={selectedDate} events={events} isMobile={isMobile} />
+          )}
+        </div>
       </div>
     </div>
   )
@@ -234,7 +236,6 @@ function DayView({ date, events, isMobile }: { date: Date; events: ShiftEvent[];
   
   // 時間帯ごとにイベントをグループ化
   const getHourEvents = (hour: number) => {
-    const hourStr = `${dateStr}T${hour.toString().padStart(2, "0")}:00:00`
     return dayEvents.filter((event) => {
       const eventStart = new Date(event.start).getHours()
       const eventEnd = new Date(event.end).getHours()
@@ -244,9 +245,9 @@ function DayView({ date, events, isMobile }: { date: Date; events: ShiftEvent[];
 
   return (
     <div className="h-[calc(100vh-220px)] min-h-[400px] overflow-y-auto">
-      <div className="space-y-1 p-2">
+      <div className="space-y-1 p-2 min-w-[640px]"> {/* 最小幅を設定して横スクロール可能に */}
         <div className="grid grid-cols-[50px_1fr] pb-2 border-b">
-          <div className="text-xs text-muted-foreground"></div>
+          <div className="text-xs text-muted-foreground sticky left-0"></div>
           <div className="px-2">
             <div className="font-medium">
               {formatDate(date)}
@@ -260,7 +261,7 @@ function DayView({ date, events, isMobile }: { date: Date; events: ShiftEvent[];
           
           return (
             <div key={hour} className="grid grid-cols-[50px_1fr] min-h-[48px]">
-              <div className="text-right pr-2 text-xs text-muted-foreground pt-2">
+              <div className="text-right pr-2 text-xs text-muted-foreground pt-2 sticky left-0 bg-card z-10">
                 {hour}:00
               </div>
               <div className={cn(
@@ -343,16 +344,8 @@ function WeekView({
     const dayStr = activeDay.toISOString().split("T")[0]
     const dayEvents = events.filter((event) => event.start.startsWith(dayStr))
     
-    // 日付変更ハンドラ
-    const navigateDay = (direction: "prev" | "next") => {
-      const newDate = new Date(activeDay)
-      newDate.setDate(activeDay.getDate() + (direction === "next" ? 1 : -1))
-      setActiveDay(newDate)
-    }
-    
     // 時間帯ごとにイベントをグループ化
     const getHourEvents = (hour: number) => {
-      const hourStr = `${dayStr}T${hour.toString().padStart(2, "0")}:00:00`
       return dayEvents.filter((event) => {
         const eventStart = new Date(event.start).getHours()
         const eventEnd = new Date(event.end).getHours()
@@ -458,101 +451,103 @@ function WeekView({
 
   return (
     <div className="h-[calc(100vh-220px)] min-h-[400px] overflow-auto">
-      <div className={cn(
-        "grid gap-px",
-        `grid-cols-[50px_repeat(${displayDays.length},1fr)]`
-      )}>
-        {/* ヘッダー行 */}
-        <div className="sticky top-0 z-30 bg-card"></div>
-        {displayDays.map((day, i) => {
-          const isToday = day.toDateString() === new Date().toDateString()
-          const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][day.getDay()]
-          const dateNum = day.getDate()
-          
-          return (
-            <div 
-              key={i} 
-              className={cn(
-                "sticky top-0 z-30 text-center py-2 bg-card",
-                isToday && "bg-primary/10"
-              )}
-            >
-              <div className="text-sm font-medium">
-                {dayOfWeek}
-              </div>
-              <div className={cn(
-                "inline-flex items-center justify-center w-7 h-7 mt-1 rounded-full",
-                isToday && "bg-primary text-primary-foreground"
-              )}>
-                {dateNum}
-              </div>
-            </div>
-          )
-        })}
-        
-        {/* 時間帯と予定の表示 */}
-        {hours.map((hour) => (
-          <React.Fragment key={hour}>
-            <div className="text-right pr-2 text-xs text-muted-foreground pt-2 bg-card">
-              {hour}:00
-            </div>
+      <div className="min-w-[640px]"> {/* 最小幅を設定して横スクロール可能に */}
+        <div className={cn(
+          "grid gap-px",
+          `grid-cols-[50px_repeat(${displayDays.length},1fr)]`
+        )}>
+          {/* ヘッダー行 */}
+          <div className="sticky top-0 z-30 bg-card"></div>
+          {displayDays.map((day, i) => {
+            const isToday = day.toDateString() === new Date().toDateString()
+            const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][day.getDay()]
+            const dateNum = day.getDate()
             
-            {displayDays.map((day, dayIndex) => {
-              const dayStr = day.toISOString().split("T")[0]
-              const isToday = day.toDateString() === new Date().toDateString()
-              
-              // この時間のイベントを取得
-              const hourEvents = events.filter(event => {
-                if (!event.start.startsWith(dayStr)) return false
-                
-                const eventStart = new Date(event.start).getHours()
-                const eventEnd = new Date(event.end).getHours()
-                return eventStart <= hour && eventEnd > hour
-              })
-              
-              return (
-                <div
-                  key={dayIndex}
-                  className={cn(
-                    "relative border-t min-h-[48px]",
-                    isToday && "bg-primary/5"
-                  )}
-                >
-                  {hourEvents.map((event) => {
-                    const startHour = new Date(event.start).getHours()
-                    const isStartingHour = startHour === hour
-                    
-                    if (!isStartingHour) return null
-                    
-                    const startMin = new Date(event.start).getMinutes()
-                    const endHour = new Date(event.end).getHours()
-                    const endMin = new Date(event.end).getMinutes()
-                    const durationHours = endHour - startHour + (endMin > 0 ? 1 : 0)
-                    
-                    return (
-                      <div 
-                        key={event.id} 
-                        className={cn(
-                          "absolute inset-x-0 mx-1 rounded-md px-2 py-1 text-sm z-10",
-                          event.color,
-                          startMin > 0 ? "mt-6" : "mt-0"
-                        )}
-                        style={{ 
-                          height: `${Math.min(durationHours * 48, 48)}px`,
-                          zIndex: event.type === "shift" ? 10 : 20
-                        }}
-                      >
-                        <div className="truncate">
-                          {event.title}
-                        </div>
-                      </div>
-                    )
-                  })}
+            return (
+              <div 
+                key={i} 
+                className={cn(
+                  "sticky top-0 z-30 text-center py-2 bg-card",
+                  isToday && "bg-primary/10"
+                )}
+              >
+                <div className="text-sm font-medium">
+                  {dayOfWeek}
                 </div>
-              )
-            })}
-          </React.Fragment>
-        ))}
+                <div className={cn(
+                  "inline-flex items-center justify-center w-7 h-7 mt-1 rounded-full",
+                  isToday && "bg-primary text-primary-foreground"
+                )}>
+                  {dateNum}
+                </div>
+              </div>
+            )
+          })}
+          
+          {/* 時間帯と予定の表示 */}
+          {hours.map((hour) => (
+            <React.Fragment key={hour}>
+              <div className="text-right pr-2 text-xs text-muted-foreground pt-2 bg-card sticky left-0 z-20">
+                {hour}:00
+              </div>
+              
+              {displayDays.map((day, dayIndex) => {
+                const dayStr = day.toISOString().split("T")[0]
+                const isToday = day.toDateString() === new Date().toDateString()
+                
+                // この時間のイベントを取得
+                const hourEvents = events.filter(event => {
+                  if (!event.start.startsWith(dayStr)) return false
+                  
+                  const eventStart = new Date(event.start).getHours()
+                  const eventEnd = new Date(event.end).getHours()
+                  return eventStart <= hour && eventEnd > hour
+                })
+                
+                return (
+                  <div
+                    key={dayIndex}
+                    className={cn(
+                      "relative border-t min-h-[48px]",
+                      isToday && "bg-primary/5"
+                    )}
+                  >
+                    {hourEvents.map((event) => {
+                      const startHour = new Date(event.start).getHours()
+                      const isStartingHour = startHour === hour
+                      
+                      if (!isStartingHour) return null
+                      
+                      const startMin = new Date(event.start).getMinutes()
+                      const endHour = new Date(event.end).getHours()
+                      const endMin = new Date(event.end).getMinutes()
+                      const durationHours = endHour - startHour + (endMin > 0 ? 1 : 0)
+                      
+                      return (
+                        <div 
+                          key={event.id} 
+                          className={cn(
+                            "absolute inset-x-0 mx-1 rounded-md px-2 py-1 text-sm z-10",
+                            event.color,
+                            startMin > 0 ? "mt-6" : "mt-0"
+                          )}
+                          style={{ 
+                            height: `${Math.min(durationHours * 48, 48)}px`,
+                            zIndex: event.type === "shift" ? 10 : 20
+                          }}
+                        >
+                          <div className="truncate">
+                            {event.title}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -589,86 +584,90 @@ function MonthView({ date, events, isMobile }: { date: Date; events: ShiftEvent[
   }
 
   return (
-    <div className="h-[calc(100vh-220px)] min-h-[450px] overflow-auto p-2">
-      <div className="grid grid-cols-7 gap-2">
-        {/* 曜日ヘッダー */}
-        {["日", "月", "火", "水", "木", "金", "土"].map((day, index) => (
-          <div key={day} className={cn(
-            "text-center text-sm font-medium p-1",
-            index === 0 && "text-red-500",
-            index === 6 && "text-blue-500"
-          )}>
-            {day}
-          </div>
-        ))}
-
-        {/* 日付セル */}
-        {weeks.flat().map((day, i) => {
-          const isCurrentMonth = day.getMonth() === date.getMonth()
-          const isToday = day.toDateString() === new Date().toDateString()
-          const isWeekend = day.getDay() === 0 || day.getDay() === 6
-          const dayStr = day.toISOString().split("T")[0]
-          const dayEvents = events.filter((event) => event.start.startsWith(dayStr))
-          
-          // イベントタイプ別グループ化
-          const shiftEvents = dayEvents.filter(e => e.type === "shift")
-          const deliveryEvents = dayEvents.filter(e => e.type === "delivery")
-          
-          return (
-            <div
-              key={i}
-              className={cn(
-                "border rounded-md p-1",
-                isMobile ? "min-h-[60px]" : "min-h-[90px]",
-                !isCurrentMonth ? "bg-muted/30 opacity-70" : "",
-                isToday ? "bg-primary/10 border-primary" : "",
-                isWeekend && !isToday ? "bg-muted/10" : ""
-              )}
-            >
-              <div className={cn(
-                "flex justify-between items-center",
-                isWeekend && day.getDay() === 0 && "text-red-500",
-                isWeekend && day.getDay() === 6 && "text-blue-500"
-              )}>
-                <span className={cn(
-                  "text-sm font-medium",
-                  isToday && "bg-primary text-primary-foreground rounded-full w-7 h-7 flex items-center justify-center"
-                )}>
-                  {day.getDate()}
-                </span>
-                {dayEvents.length > 0 && !isMobile && (
-                  <span className="text-xs text-muted-foreground">
-                    {dayEvents.length}件
-                  </span>
-                )}
-              </div>
-              
-              <div className={cn(
-                "mt-1 space-y-1",
-                isMobile ? "max-h-[40px] overflow-hidden" : ""
-              )}>
-                {shiftEvents.length > 0 && (
-                  <div className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded truncate">
-                    シフト {shiftEvents[0].start.substring(11, 16)}-{shiftEvents[0].end.substring(11, 16)}
-                  </div>
-                )}
-                
-                {deliveryEvents.length > 0 && (
-                  <div className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-1.5 py-0.5 rounded truncate">
-                    配送 {deliveryEvents.length}件
-                  </div>
-                )}
-                
-                {/* モバイルで表示しきれない場合の表示 */}
-                {isMobile && dayEvents.length > 1 && (
-                  <div className="text-xs text-center text-muted-foreground">
-                    +{dayEvents.length - 1}
-                  </div>
-                )}
-              </div>
+    <div className="h-[calc(100vh-220px)] min-h-[450px] overflow-auto">
+      <div className="min-w-[640px] p-2"> {/* 最小幅を設定して横スクロール可能に */}
+        <div className="grid grid-cols-7 gap-2">
+          {/* 曜日ヘッダー */}
+          {["日", "月", "火", "水", "木", "金", "土"].map((day, index) => (
+            <div key={day} className={cn(
+              "text-center text-sm font-medium p-1 sticky top-0 z-10 bg-card",
+              index === 0 && "text-red-500",
+              index === 6 && "text-blue-500"
+            )}>
+              {day}
             </div>
-          )
-        })}
+          ))}
+
+          {/* 日付セル */}
+          {weeks.flat().map((day, i) => {
+            const isCurrentMonth = day.getMonth() === date.getMonth()
+            const isToday = day.toDateString() === new Date().toDateString()
+            const isWeekend = day.getDay() === 0 || day.getDay() === 6
+            const dayStr = day.toISOString().split("T")[0]
+            const dayEvents = events.filter((event) => event.start.startsWith(dayStr))
+            
+            // イベントタイプ別グループ化
+            const shiftEvents = dayEvents.filter(e => e.type === "shift")
+            const deliveryEvents = dayEvents.filter(e => e.type === "delivery")
+            
+            return (
+              <div
+                key={i}
+                className={cn(
+                  "border rounded-md p-1",
+                  isMobile ? "min-h-[60px]" : "min-h-[90px]",
+                  !isCurrentMonth ? "bg-muted/30 opacity-70" : "",
+                  isToday ? "bg-primary/10 border-primary" : "",
+                  isWeekend && !isToday ? "bg-muted/10" : ""
+                )}
+              >
+                <div className={cn(
+                  "flex justify-between items-center",
+                  isWeekend && day.getDay() === 0 && "text-red-500",
+                  isWeekend && day.getDay() === 6 && "text-blue-500"
+                )}>
+                  <span className={cn(
+                    "text-sm font-medium",
+                    isToday && "bg-primary text-primary-foreground rounded-full w-7 h-7 flex items-center justify-center"
+                  )}>
+                    {day.getDate()}
+                  </span>
+                  {dayEvents.length > 0 && !isMobile && (
+                    <span className="text-xs text-muted-foreground">
+                      {dayEvents.length}件
+                    </span>
+                  )}
+                </div>
+                
+                <div className={cn(
+                  "mt-1 space-y-1",
+                  isMobile ? "max-h-[40px] overflow-hidden" : "max-h-[70px] overflow-y-auto"
+                )}>
+                  {shiftEvents.length > 0 && (
+                    <div className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded truncate">
+                      シフト {shiftEvents[0].start.substring(11, 16)}-{shiftEvents[0].end.substring(11, 16)}
+                    </div>
+                  )}
+                  
+                  {deliveryEvents.map((event, idx) => (
+                    idx < (isMobile ? 1 : 3) && (
+                      <div key={event.id} className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-1.5 py-0.5 rounded truncate">
+                        {event.title} {event.start.substring(11, 16)}-{event.end.substring(11, 16)}
+                      </div>
+                    )
+                  ))}
+                  
+                  {/* 表示しきれない場合の表示 */}
+                  {((isMobile && dayEvents.length > 2) || (!isMobile && deliveryEvents.length > 3)) && (
+                    <div className="text-xs text-center text-muted-foreground">
+                      +{isMobile ? dayEvents.length - 2 : deliveryEvents.length - 3}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
