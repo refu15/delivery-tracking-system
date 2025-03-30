@@ -9,14 +9,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useUser } from "@/context/user-context"
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { setUserRole } = useUser()
+  const [activeTab, setActiveTab] = useState<"delivery" | "admin">("delivery")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+
+    // ユーザーロールを設定
+    setUserRole(activeTab === "admin" ? "admin" : "driver")
 
     // 実際の実装ではSupabaseなどで認証処理
     // ここではモック処理として少し待ってからリダイレクト
@@ -28,7 +34,11 @@ export function LoginForm() {
 
   return (
     <Card>
-      <Tabs defaultValue="delivery" className="w-full">
+      <Tabs 
+        defaultValue="delivery" 
+        className="w-full"
+        onValueChange={(value) => setActiveTab(value as "delivery" | "admin")}
+      >
         <CardHeader>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="delivery">配達員</TabsTrigger>

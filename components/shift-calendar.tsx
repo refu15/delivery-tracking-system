@@ -4,6 +4,7 @@ import React from "react"
 
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 type ShiftEvent = {
   id: number
@@ -73,6 +74,7 @@ const generateMockEvents = (baseDate: Date): ShiftEvent[] => {
 
 export function ShiftCalendar({ date, view }: ShiftCalendarProps) {
   const [events, setEvents] = useState<ShiftEvent[]>([])
+  const isMobile = useMediaQuery("(max-width: 640px)")
 
   useEffect(() => {
     // 実際のアプリではAPIからデータを取得
@@ -80,15 +82,15 @@ export function ShiftCalendar({ date, view }: ShiftCalendarProps) {
   }, [date])
 
   if (view === "day") {
-    return <DayView date={date} events={events} />
+    return <DayView date={date} events={events} isMobile={isMobile} />
   } else if (view === "week") {
-    return <WeekView date={date} events={events} />
+    return <WeekView date={date} events={events} isMobile={isMobile} />
   } else {
-    return <MonthView date={date} events={events} />
+    return <MonthView date={date} events={events} isMobile={isMobile} />
   }
 }
 
-function DayView({ date, events }: { date: Date; events: ShiftEvent[] }) {
+function DayView({ date, events, isMobile }: { date: Date; events: ShiftEvent[]; isMobile: boolean }) {
   const dateStr = date.toISOString().split("T")[0]
   const dayEvents = events.filter((event) => event.start.startsWith(dateStr))
   const hours = Array.from({ length: 12 }, (_, i) => i + 8) // 8時から19時まで
@@ -116,7 +118,7 @@ function DayView({ date, events }: { date: Date; events: ShiftEvent[] }) {
   )
 }
 
-function WeekView({ date, events }: { date: Date; events: ShiftEvent[] }) {
+function WeekView({ date, events, isMobile }: { date: Date; events: ShiftEvent[]; isMobile: boolean }) {
   // 週の始まりの日を取得（日曜日）
   const startOfWeek = new Date(date)
   startOfWeek.setDate(date.getDate() - date.getDay())
@@ -128,14 +130,94 @@ function WeekView({ date, events }: { date: Date; events: ShiftEvent[] }) {
     return day
   })
 
+  // モバイル対応: 平日のみ表示するか、または全日表示するかを決定
+  const displayDays = isMobile
+    ? weekDays.filter((day) => {
+        const dayOfWeek = day.getDay()
+        return dayOfWeek >= 1 && dayOfWeek <= 5
+      })
+    : weekDays
+
   const hours = Array.from({ length: 12 }, (_, i) => i + 8) // 8時から19時まで
 
+  // モバイルの場合は1日ずつ表示
+  if (isMobile) {
+    // 現在の日付に最も近い平日を選択
+    const today = new Date()
+    let closestDayIndex = 0
+    let minDiff = Infinity
+
+    displayDays.forEach((day, index) => {
+      const diff = Math.abs(day.getTime() - today.getTime())
+      if (diff < minDiff) {
+        minDiff = diff
+        closestDayIndex = index
+      }
+    })
+
+    const selectedDay = displayDays[closestDayIndex]
+    const dayStr = selectedDay.toISOString().split("T")[0]
+    const dayEvents = events.filter((event) => event.start.startsWith(dayStr))
+
+    const dayOfWeekStr = ["日", "月", "火", "水", "木", "金", "土"][selectedDay.getDay()]
+    const formattedDate = `${selectedDay.getMonth() + 1}月${selectedDay.getDate()}日(${dayOfWeekStr})`
+
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center mb-2">
+          <button 
+            className="px-2 py-1 bg-gray-100 rounded-md dark:bg-gray-800"
+            onClick={() => {
+              const prevDay = new Date(selectedDay)
+              prevDay.setDate(prevDay.getDate() - 1)
+              // 実際はここでコンテキスト経由で日付更新
+            }}
+          >
+            ◀
+          </button>
+          <h3 className="text-lg font-medium">{formattedDate}</h3>
+          <button 
+            className="px-2 py-1 bg-gray-100 rounded-md dark:bg-gray-800"
+            onClick={() => {
+              const nextDay = new Date(selectedDay)
+              nextDay.setDate(nextDay.getDate() + 1)
+              // 実際はここでコンテキスト経由で日付更新
+            }}
+          >
+            ▶
+          </button>
+        </div>
+
+        <div className="space-y-1">
+          {hours.map((hour) => {
+            const hourStr = `${dayStr}T${hour.toString().padStart(2, "0")}:00:00`
+            const hourEvents = dayEvents.filter((event) => event.start <= hourStr && event.end > hourStr)
+
+            return (
+              <div key={hour} className="grid grid-cols-[50px_1fr] gap-2">
+                <div className="text-right text-sm text-muted-foreground">{hour}:00</div>
+                <div className="rounded-md border p-2 min-h-[60px]">
+                  {hourEvents.map((event) => (
+                    <div key={event.id} className={`rounded-sm px-2 py-1 text-xs mb-1 ${event.color}`}>
+                      {event.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  // デスクトップ表示: 従来の週表示
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[800px]">
-        <div className="grid grid-cols-[60px_repeat(7,1fr)] gap-1">
+      <div className={isMobile ? "min-w-full" : "min-w-[800px]"}>
+        <div className={`grid grid-cols-[60px_repeat(${displayDays.length},1fr)] gap-1`}>
           <div className="text-sm text-muted-foreground"></div>
-          {weekDays.map((day, i) => (
+          {displayDays.map((day, i) => (
             <div
               key={i}
               className={`text-center font-medium ${
@@ -150,7 +232,7 @@ function WeekView({ date, events }: { date: Date; events: ShiftEvent[] }) {
           {hours.map((hour) => (
             <React.Fragment key={hour}>
               <div className="text-right text-sm text-muted-foreground pt-2">{hour}:00</div>
-              {weekDays.map((day, dayIndex) => {
+              {displayDays.map((day, dayIndex) => {
                 const dayStr = day.toISOString().split("T")[0]
                 const hourStr = `${dayStr}T${hour.toString().padStart(2, "0")}:00:00`
                 const hourEvents = events.filter(
@@ -180,7 +262,7 @@ function WeekView({ date, events }: { date: Date; events: ShiftEvent[] }) {
   )
 }
 
-function MonthView({ date, events }: { date: Date; events: ShiftEvent[] }) {
+function MonthView({ date, events, isMobile }: { date: Date; events: ShiftEvent[]; isMobile: boolean }) {
   // 月の最初の日を取得
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1)
   // 月の最後の日を取得
@@ -227,12 +309,12 @@ function MonthView({ date, events }: { date: Date; events: ShiftEvent[] }) {
         return (
           <div
             key={i}
-            className={`min-h-[100px] p-1 border rounded-md ${
+            className={`${isMobile ? 'min-h-[70px]' : 'min-h-[100px]'} p-1 border rounded-md ${
               !isCurrentMonth ? "bg-muted/50" : ""
             } ${isToday ? "bg-primary/10" : ""}`}
           >
             <div className="text-right text-sm font-medium">{day.getDate()}</div>
-            <div className="mt-1 space-y-1">
+            <div className={`mt-1 space-y-1 ${isMobile ? 'overflow-hidden' : ''}`}>
               {dayEvents.length > 0 && (
                 <div className="text-xs">
                   {dayEvents.filter((e) => e.type === "shift").length > 0 && (
@@ -248,7 +330,7 @@ function MonthView({ date, events }: { date: Date; events: ShiftEvent[] }) {
                       variant="outline"
                       className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 w-full justify-center"
                     >
-                      配送 {dayEvents.filter((e) => e.type === "delivery").length}件
+                      配送 {dayEvents.filter(e => e.type === "delivery").length}件
                     </Badge>
                   )}
                 </div>

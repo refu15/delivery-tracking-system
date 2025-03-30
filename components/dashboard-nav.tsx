@@ -4,7 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Calendar, Home, Truck, FileText, Bell, CarFront } from "lucide-react"
+import { Calendar, Home, Truck, FileText, Bell, CarFront, Users } from "lucide-react"
+import { useUser } from "@/context/user-context"
 
 const navItems = [
   {
@@ -41,10 +42,25 @@ const navItems = [
 
 export function DashboardNav() {
   const pathname = usePathname()
+  const { isAdmin } = useUser()
+
+  // 管理者用のナビゲーション項目を追加
+  const adminNavItems = [
+    {
+      title: "配達員管理",
+      href: "/dashboard/drivers",
+      icon: Users,
+    }
+  ]
+
+  // 全ユーザー向けのナビゲーション項目と管理者向けのナビゲーション項目を条件付きで結合
+  const allNavItems = isAdmin 
+    ? [...navItems, ...adminNavItems] 
+    : navItems
 
   return (
     <nav className="grid items-start gap-2">
-      {navItems.map((item) => (
+      {allNavItems.map((item) => (
         <Link key={item.href} href={item.href}>
           <Button
             variant={pathname === item.href ? "secondary" : "ghost"}
